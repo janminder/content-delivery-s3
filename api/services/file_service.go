@@ -7,35 +7,33 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/janminder/content-delivery-s3-backend/config"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
 )
 
-var conf *viper.Viper
-
 type FileService interface {
-	GetFile(bucket string, key string) *os.File
+	GetFile(bucket string, key string) (*os.File, error)
 }
 
 type fileService struct {
-
+	conf *viper.Viper
 }
 
-func NewFileService() FileService {
-	conf = config.LoadConfig("dev")
-	return &fileService{}
+func NewFileService(c *viper.Viper) FileService {
+	return &fileService{
+		conf: c,
+	}
 }
 
-func (s *fileService) GetFile(bucket string, key string) *os.File {
+func (s *fileService) GetFile(bucket string, key string) (*os.File, error) {
 
 	log.Debug("Get file from ", bucket, " with name ", key)
 
 	// Configure to use MinIO Server
 	s3Config := &aws.Config{
-		Credentials:      credentials.NewStaticCredentials(conf.GetString("s3.accessKey"), conf.GetString("s3.secret"), ""),
-		Endpoint:         aws.String(conf.GetString("s3.protocol")+"://"+conf.GetString("s3.host")+":"+conf.GetString("s3.port")),
+		Credentials:      credentials.NewStaticCredentials(s.conf.GetString("s3.accessKey"), s.conf.GetString("s3.secret"), ""),
+		Endpoint:         aws.String(s.conf.GetString("s3.protocol") + "://" + s.conf.GetString("s3.host") + ":" + s.conf.GetString("s3.port")),
 		Region:           aws.String("us-east-1"),
 		DisableSSL:       aws.Bool(true),
 		S3ForcePathStyle: aws.Bool(true),
@@ -43,18 +41,20 @@ func (s *fileService) GetFile(bucket string, key string) *os.File {
 
 	sess := session.New(s3Config)
 
-	path := conf.GetString("s3.tmpDir")
+	path := s.conf.GetString("s3.tmpDir")
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		os.Mkdir(path, os.ModePerm)
 	}
 
 	file, err := os.Create(path + key)
+	defer s.closeFile(file)
 
 	if err != nil {
 		fmt.Println("Failed to create file", err)
 	}
 
 	downloader := s3manager.NewDownloader(sess)
+
 	numBytes, err := downloader.Download(file,
 		&s3.GetObjectInput{
 			Bucket: aws.String(bucket),
@@ -63,13 +63,11 @@ func (s *fileService) GetFile(bucket string, key string) *os.File {
 
 	if err != nil {
 		fmt.Println("Failed to download file", err)
+		return nil, err
+	} else {
+		log.Info("Downloaded file ", file.Name() , " ", numBytes, " bytes")
+		return file, nil
 	}
-
-	log.Info("Downloaded file ", file.Name() , " ", numBytes, " bytes")
-
-	defer s.closeFile(file)
-
-	return file
 }
 
 func (s *fileService) closeFile(f *os.File) {

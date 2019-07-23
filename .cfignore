@@ -1,10 +1,12 @@
 cmd
 app.yml
 docker-compose.yml
-Dockerfile
 README.md
 .idea
 Gopkg.lock
+Gopkg.toml
+Makefile
 vendor
 api
 models
+tmp/

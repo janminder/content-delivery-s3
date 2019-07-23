@@ -27,33 +27,39 @@ type server struct {
 
 func LoadConfig(env string) *viper.Viper {
 
+	log.Debug("load static configs..")
+
 	var confFile string
 
 	switch env {
-	case "dev":
-		confFile = "config.dev"
-	case "stag":
-		confFile = "config.stag"
-	case "prod":
-		confFile = "config.prod"
-	default:
-		confFile = "config.dev"
+		case "dev":
+			confFile = "config.dev"
+		case "cloud":
+			confFile = "config.cloud"
+		default:
+			confFile = "config.dev"
 	}
 
-	// Create new Viper Config Struct
 	v := viper.New()
-	v.SetConfigName(confFile) // name of config file (without extension)
+	v.SetConfigName(confFile)
 	v.AddConfigPath("config")
 
-	vcaperr := v.BindEnv("vcap", "VCAP_SERVICES")
+	err := v.ReadInConfig() // Find and read the config file
+	if err != nil { // Handle errors reading the config file
+		log.Fatal("Fatal error config file: ", err)
+	}
 
-	if vcaperr != nil {
+	log.Info("static configuration: ", v)
+
+	vcapErr := v.BindEnv("vcap", "VCAP_SERVICES")
+
+	if vcapErr != nil {
 		log.Error("Failed to read vcap services")
 	}
 
 	if v.GetString("vcap") != "" {
 
-		log.Debug("Available cf env: ", v.GetString("vcap"))
+		log.Debug("Content of VCAP_SERVICES variable: ", v.GetString("vcap"))
 		appEnv, err := cfenv.Current()
 
 		if err != nil {
@@ -61,10 +67,13 @@ func LoadConfig(env string) *viper.Viper {
 		}
 
 		log.Debug("cf environment: ", appEnv)
-		log.Debug("_________________________________________")
 		log.Debug("cf services: ", appEnv.Services)
 
-		storage, err := appEnv.Services.WithName("cd-s3")
+		if v.GetString("s3.serviceName") == "" {
+			log.Fatal("you have to provide a s3.serviceName in config to read the service details")
+		}
+
+		storage, err := appEnv.Services.WithName(v.GetString("s3.serviceName"))
 
 		if err != nil {
 			log.Error("failed to read storage service from cf env")
@@ -79,19 +88,12 @@ func LoadConfig(env string) *viper.Viper {
 
 			if ok {
 				v.Set("s3.host", accessHost)
-				v.Set("s3.port", 443)
-				v.Set("s3.protocol", "https")
 				v.Set("s3.accessKey", accessKey)
 				v.Set("s3.secret", sharedSecret)
 				v.Set("s3.namespace", namespace)
 				v.Set("s3.namespaceHost", namespaceHost)
 			}
 		}
-	}
-
-	err := v.ReadInConfig() // Find and read the config file
-	if err != nil { // Handle errors reading the config file
-		log.Fatal("Fatal error config file: ", err)
 	}
 
 	return v

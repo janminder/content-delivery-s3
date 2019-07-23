@@ -1,9 +1,10 @@
-# Configuration for Development Environment
+# Configuration for Cloud Environment
 
 [server]
 host = "0.0.0.0"
 
 [s3]
+serviceName = "cd-s3"
 protocol = "https"
 port = 443
 tmpDir = "tmp/"

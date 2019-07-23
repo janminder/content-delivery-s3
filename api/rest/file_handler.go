@@ -2,6 +2,7 @@ package rest
 
 import (
 	"github.com/labstack/echo"
+	"net/http"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -29,6 +30,11 @@ func (api *Server) GetFile(c echo.Context) error {
 	bucket := c.Param("bucket")
 	key := c.Param("key")
 	log.Debug("bucket=", bucket, " key=", key)
-	file := api.services.fileService.GetFile(bucket, key)
-	return c.File(file.Name())
+
+	file, err := api.services.fileService.GetFile(bucket, key)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusNotFound, "The requested file was not found on the server")
+	} else {
+		return c.File(file.Name())
+	}
 }

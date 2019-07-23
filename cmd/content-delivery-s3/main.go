@@ -1,18 +1,3 @@
-// GO REST API Demo
-//
-// This is a sample implementation with golang. This project will be used for learning's.
-//
-//     Schemes: http, https
-//     Host: localhost:8000
-//     Version: 0.1.0
-//
-//     Consumes:
-//     - application/json
-//
-//     Produces:
-//     - application/json
-//
-// swagger:meta
 package main
 
 import (
@@ -45,7 +30,6 @@ func main() {
 	profile := os.Getenv("PROFILE")
 
 	if profile != "" {
-
 		switch profile {
 			case "cloud":
 				profile = "cloud"
@@ -66,10 +50,10 @@ func main() {
 	}
 
 	// Create Service
-	userService := services.NewFileService()
+	fileService := services.NewFileService(conf)
 
 	// Create HTTP Server
-	httpServer := rest.NewServer(userService, conf)
+	httpServer := rest.NewServer(fileService, conf)
 	echoServer := httpServer.InitializeHandler()
 
 	// Run our server in a goroutine so that it doesn't block.
