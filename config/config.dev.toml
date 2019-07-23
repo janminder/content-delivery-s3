@@ -1,0 +1,13 @@
+# Configuration for Development Environment
+
+[server]
+host = "0.0.0.0"
+port = 8080
+
+[s3]
+protocol = "http"
+host = "127.0.0.1"
+port = "8000"
+accessKey = "accessKey1"
+secret = "verySecretKey1"
+tmpDir = "tmp/"

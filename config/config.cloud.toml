@@ -1,0 +1,9 @@
+# Configuration for Development Environment
+
+[server]
+host = "0.0.0.0"
+
+[s3]
+protocol = "https"
+port = 443
+tmpDir = "tmp/"

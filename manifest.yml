@@ -1,0 +1,13 @@
+---
+applications:
+  - name: cd-s3-backend
+    memory: 1G
+    routes:
+      - route: static.domain.com
+    buildpacks:
+      - binary_buildpack
+    services:
+      - cd-s3
+    env:
+      PROFILE: cloud
+      GOVERSION: go1.12.7
