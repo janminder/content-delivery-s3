@@ -1,4 +1,4 @@
-# Static files from custom S3 Storage on Cloud Foundry
+# Static files from third-party S3 Storage on Cloud Foundry
 
 Basically this is a simple file proxy, which serves files from a third party s3 storage. Use case could be serving 
 static files like javascript, css or other resources in a cloud foundry environment with 
