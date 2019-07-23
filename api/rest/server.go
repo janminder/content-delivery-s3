@@ -8,7 +8,7 @@ import (
 )
 
 type Services struct {
-	userService services.FileService
+	fileService services.FileService
 }
 
 type Server struct {
@@ -17,11 +17,11 @@ type Server struct {
 	conf     *viper.Viper
 }
 
-func NewServer(userService services.FileService, c *viper.Viper) *Server {
+func NewServer(fileService services.FileService, c *viper.Viper) *Server {
 
 	// Setup all Services
 	services := Services{
-		userService: userService,
+		fileService: fileService,
 	}
 
 	// Setup Server

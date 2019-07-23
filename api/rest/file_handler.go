@@ -29,6 +29,6 @@ func (api *Server) GetFile(c echo.Context) error {
 	bucket := c.Param("bucket")
 	key := c.Param("key")
 	log.Debug("bucket=", bucket, " key=", key)
-	file := api.services.userService.GetFile(bucket, key)
+	file := api.services.fileService.GetFile(bucket, key)
 	return c.File(file.Name())
 }
