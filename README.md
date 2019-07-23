@@ -2,7 +2,7 @@
 
 ### URL Schema
 
-https://static.domain.com/`bucket-name`/`file-name`
+https://static.domain.com/bucket-name/file-name
 
 
 ### Manage Data
